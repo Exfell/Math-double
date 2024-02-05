@@ -1,69 +1,68 @@
 #include <iostream>
 #include <string>
+void removing_non_adjacent_zeros(std::string& string_with_zeros);
+std::string scientific_notation(const std::string math_double);
+void test_scientific_notation(void);
 
-void EraseNullsFromEnd(std::string& dec, int point) {
-	for (int i = dec.size()-1; i > point;i--)
+int main() {
+	test_scientific_notation();
+}
+
+void removing_non_adjacent_zeros(std::string& string_with_zeros) {
+	//This is done so that 2.0e-5 is output instead of 2.e5
+	for (int i = string_with_zeros.size()-1; i > 1;i--)
 	{
-		if (dec[i] == '0') {
-			dec.erase(i, 1);
+		if (string_with_zeros[i] == '0') {
+			string_with_zeros.erase(i, 1);
 		}
 		else { break; }
 	}
 }
 
-int main() {
-
-	std::string decimal{};
+std::string scientific_notation(const std::string math_double) {
 	int exp{};
 	int point{};
+	std::string new_math_double{ math_double };
+	std::string result;
+	
+	point = new_math_double.find('.');
+	if (!(point > 0)) { point = new_math_double.size(); }
 
-	std::cout << "Write floating point number ";
-	std::getline(std::cin, decimal);
-	//Determining the index of a point
-	point = decimal.find('.');
-	if (!(point>0)) { point = decimal.size(); }
-
-	//проверка начала
-	int tempPoint = point;
-	for (int i = 0; i < tempPoint;)
+	//Here the integer part of the number is checked to see if a positive exponent is needed
+	for (int i = 0; i < point;)
 	{
-		if (decimal[i] != '0') { exp = tempPoint - 1 - i; break; }
-		else { 
-			decimal.erase(i, 1);
-			tempPoint--;
-		}
-	}
-	//Если число с 0 в целой части
-	if (exp == 0) {
-		point = 0;
-		for (int i = point; i < decimal.size() - 1;)
-		{
-			if ((decimal[i] != '0') and (decimal[i]!='.')) { break; }
-			exp--;
-			decimal.erase(i, 1);
-		}
-	}
-	std::string newDecimal;
-	//СЦЕНАРИЙ, ПРИ КОТОРОМ ЭКСПОНЕНТА НЕОТРИЦАТЕЛЬНАЯ
-	if (exp >= 0) {
-		decimal.erase(point, 1);
-		std::string rest = decimal.substr(1, decimal.size() - 1);
-		//Делаем 2345123
-		EraseNullsFromEnd(rest, 0);
-		//Если число как меньше 10, то у него остальная часть равна пустой строке
-		if (rest == "") {
-			newDecimal = (decimal[0] +('e' + std::to_string(exp)));
-		}
+		if (new_math_double[i] != '0') { exp = (point - 1) - i; break; }
 		else {
-			newDecimal = (decimal[0] + ('.' + rest + 'e') + std::to_string(exp));
+			new_math_double.erase(i, 1);
+			point--;
 		}
 	}
 
-	//СЦЕНАРИЙ, ПРИ КОТОРОМ ЭКСПОНЕНТА ОТРИЦАТЕЛЬНАЯ
-	if (exp < 0) {
-		std::string rest = decimal.substr(1, decimal.size() - 1);
-		newDecimal = (decimal[0] + ('.' + rest + 'e') + std::to_string(exp));
-
+	if (exp >= 0) {
+		new_math_double.erase(point, 1);
 	}
-	std::cout << newDecimal;
+	if (exp == 0 && point == 0) {
+		exp--;
+		for (int i = point; i < new_math_double.size() - 1;)
+		{
+			if (new_math_double[i] != '0') { break; }
+			exp--;
+			new_math_double.erase(i, 1);
+		}
+	}
+	removing_non_adjacent_zeros(new_math_double);
+	std::string newFractionalPart = new_math_double.substr(1, new_math_double.size() - 1);
+	//String Tricks
+	result = (new_math_double[0] + ('.' + newFractionalPart + 'e') + std::to_string(exp));
+	return result;
+}
+
+void test_scientific_notation() {
+	std::cout << (scientific_notation("12.122220000") == "1.212222e1") << '\n';
+	std::cout << (scientific_notation("0000000000.000020000") == "2.0e-5") << '\n';
+	std::cout << (scientific_notation("0001.12") == "1.12e0") << '\n';
+	std::cout << (scientific_notation("1.0") == "1.0e0") << '\n';
+	std::cout << (scientific_notation("0000212400.1010101002000") == "2.124001010101002e5") << '\n';
+	std::cout << (scientific_notation("0000000000000000000010000.000000000000000000000000") == "1.0e4") << '\n';
+	std::cout << (scientific_notation("10.") == "1.0e1") << '\n';
 }
